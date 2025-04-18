@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  airflow-webserver:
+    build: .
+    image: apache/airflow:2.8.1
+    restart: always
+    depends_on:
+      - postgres
+      - minio
+    environment:
+      AIRFLOW__WEBSERVER__SECRET_KEY: my_very_secret_key_123456
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__WEBSERVER__PORT: 8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./utils:/opt/airflow/utils
+      - ./data:/opt/airflow/data
+    command: webserver
+
+  airflow-scheduler:
+    build: .
+    image: apache/airflow:2.8.1
+    depends_on:
+      - airflow-webserver
+    environment:
+      AIRFLOW__WEBSERVER__SECRET_KEY: my_very_secret_key_123456
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./utils:/opt/airflow/utils 
+      - ./data:/opt/airflow/data 
+    command: scheduler
+
+  minio:
+    image: minio/minio:RELEASE.2021-06-17T00-10-46Z
+    environment:
+      AIRFLOW__WEBSERVER__SECRET_KEY: my_very_secret_key_123456
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    ports:
+      - "9000:9000"
+    volumes:
+      - minio_data:/data
+    command: server /data
+
+volumes:
+  pgdata:
+  minio_data:
