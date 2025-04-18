@@ -16,3 +16,10 @@ This demo demonstrates an ETL (Extract, Transform, Load) pipeline implemented us
 - `data/`: Directory where raw data (IMDB dataset) and output files are stored.
 - `utils/`: Helper scripts for extracting, transforming, and loading data.
 - `docker-compose.yml`: Configures the services (Airflow, PostgreSQL, MinIO) for running the pipeline.
+
+
++-------------+     +-------------+     +-------------+
+|  Extract    | --> |  Transform  | --> |   Load      |
+|  (CSV)      |     |  (Cleaning, |     |  (PostgreSQL|
+|             |     |   Formatting|     |   or MinIO) |
++-------------+     +-------------+     +-------------+
